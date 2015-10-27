@@ -1,0 +1,19 @@
+Folders
+=======
+DCM_IN			< Here goes the DCM Raw Files
+ODT_Temp		< May be copy all ODT_Template and content.xml to zippit?
+ODT_Template	< All ODT files else content.xml
+DOC_Report		< Finished report as fake .DOC file
+XML_Data		< content.xml filled with Structured Reports sorted by Accession Number
+XML_Template	< Original content.xml
+
+Path
+====
+storescp.exe receives DCM files and store it on DCM_IN.
+DirWatchdog scans DCM_IN folder deleting DCM Images and sending SR to Weird_SR_Parser.
+Weird_SR_Parser (SR2XML) then replaces fields on content.xml and name it <AccessionNumber>.XML
+Then someone might take it and copy with ODT_Template to a temp folder...
+Zippit commpress ODT_Temp folder to DOC_Report/<AccessionNumber>.DOC
+Somebody copies that DOC to corresponding place!
+
+¡¡¡¡BE FUCKING HAPPY!!!!

@@ -1,0 +1,6 @@
+2015-09-05 Known Issues
+-----------------------
+
+- Doesn't copy all the template in the temp, just generates the content.xml
+- Generates the content.xml without extension and its name is the SOP class.
+- Doesn't generates the temp folder with SOP class name.

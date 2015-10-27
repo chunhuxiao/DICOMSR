@@ -1,0 +1,6 @@
+<project outputDir="D:\izzitech\Cardiolizer\Confused" baseDir="D:\izzitech\Cardiolizer" xmlns="http://confuser.codeplex.com">
+  <module path="medical\bin\Release\Cardiolizer.exe" />
+  <module path="medical\bin\Release\CrapFixer.dll" />
+  <module path="medical\bin\Release\StructuredReport_Meassurements.dll" />
+  <module path="medical\bin\Release\Utilities.dll" />
+</project>

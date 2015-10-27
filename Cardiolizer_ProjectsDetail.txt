@@ -1,0 +1,23 @@
+Cardiolizer
+-----------
+	The program itself.
+	It stores the procedures to compound the reports.
+
+CrapFixer
+---------
+	It stores the procedures to fix external system problems.
+	It tries to adapt Cardiolizer to the clinic functioning without changing the environment.
+
+StructuredReport
+----------------
+	Where the dictionaries are.
+	Here I store the IDs and Path to get info from de StructuredReports made by the clients.
+
+Utilities
+---------
+	Where extensions to the .NET Framework are.
+	Here I store the procedures to get work like compressing or moving files done.
+
+VisualTools
+-----------
+	Little GUI applications that help me to test and understand how some things work.
