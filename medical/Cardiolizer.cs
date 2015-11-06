@@ -21,13 +21,19 @@ namespace Cardiolizer {
             tempContentFileName = "content.xml",
             SRStartString = "<Report>";
 
+        public const string[] contentFiles = { "content.xml", "styles.xml" };
+
         public static string
             fileOutPath = "",
             appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             dataPath = Path.Combine(appDataPath, folderDir),
             dataInPath = Path.Combine(dataPath, dataInDir),
             templatePath = Path.Combine(dataPath, templateDir),
+
+            // Deprecate
             contentFilePath = Path.Combine(templatePath, contentFileName),
+            // ---------
+
             tempPath = Path.Combine(dataPath, tempDir),
             tempFullPath = "", // Path.Combine(Config.tempPath, new FileInfo(sourceFiles[i]).Name);
             tempContentFilePath = ""; // Path.Combine(tempFullPath, tempContentFileName); // Path.Combine(tempPath, tempContentFileName);
@@ -95,14 +101,19 @@ namespace Cardiolizer {
                 }
             }
 
-            Console.WriteLine("Out Path: \"{0}\"", Config.fileOutPath);
             Console.WriteLine("App Data Path: \"{0}\"", Config.appDataPath);
             Console.WriteLine("Data Path: \"{0}\"", Config.dataPath);
-            Console.WriteLine("Data In Path: \"{0}\"", Config.dataInPath);
-            Console.WriteLine("Template Path: \"{0}\"", Config.templatePath);
-            Console.WriteLine("Content File Path: \"{0}\"", Config.contentFilePath);
-            Console.WriteLine("Temp Path: \"{0}\"", Config.tempPath);
-            Console.WriteLine("Temp Content File Path: \"{0}\"", Config.tempContentFilePath);
+            Console.WriteLine("Data In dir: \"{0}\"", Config.dataInDir);
+            Console.WriteLine("Template dir: \"{0}\"", Config.templateDir);
+            // Console.WriteLine("Content File Path: \"{0}\"", Config.contentFilePath);
+            Console.WriteLine("Temp: \"{0}\"", Config.tempDir);
+
+            foreach (string contentFileTemp in Config.contentFiles)
+            {
+                Console.WriteLine("Temp Content File: \"{0}\"", contentFileTemp);
+            }
+            
+            Console.WriteLine("Out Path: \"{0}\"", Config.fileOutPath);
 
             string[] folderPaths = new string[] { Config.dataInPath, Config.templatePath, Config.tempPath };
             Utilities.Folders.CheckIfNotExistAndCreate(folderPaths);
@@ -149,6 +160,9 @@ namespace Cardiolizer {
                 }
             }
 
+
+            // Fix THIS!!
+            // It need to work with more than one file.
             string reportContentFilePath = Config.contentFilePath;
             string reportTempContentFilePath = Path.Combine(Config.tempFullPath, Config.tempContentFileName);
             // string reportTempContentFilePath = Config.tempPath;
