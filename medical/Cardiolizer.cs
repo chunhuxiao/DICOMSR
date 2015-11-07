@@ -144,11 +144,20 @@ namespace Cardiolizer {
 
     class Report
     {
-        public void MakeReportFromSRDCM(string fileIn)
+        public void MakeReportFromSRDCM(string inPath, string outPath, string[] files)
         {
-            Console.WriteLine("Creating Report from: {0}", fileIn);
+            // **
+            // Here I made a mistake. Cause I've mixed too many tasks on just one function,
+            // what creates confusion.
+            // Next step would be reordering task by task on its properly function.
+            // 
+            // Read SR DCM and make a list.
+            // Replace values on XML with that list.
+            // ZIP the files on a DOC file.
+            // Delete them all.
+            // **
 
-            string content = StructuredReport.StructuredReport.Read(fileIn, Config.SRStartString);
+            string content = StructuredReport.StructuredReport.Read(srdcm, Config.SRStartString);
             List<StructuredReport.Meassurements.item> meassurementsList = new List<StructuredReport.Meassurements.item>();
             meassurementsList = StructuredReport.StructuredReport.FillList(content);
 
@@ -160,23 +169,35 @@ namespace Cardiolizer {
                 }
             }
 
+            int accessionNumber = 0;
+            foreach (string file in files)
+            {
 
-            // Fix THIS!!
-            // It need to work with more than one file.
-            string reportContentFilePath = Config.contentFilePath;
-            string reportTempContentFilePath = Path.Combine(Config.tempFullPath, Config.tempContentFileName);
-            // string reportTempContentFilePath = Config.tempPath;
+                string reportContentFilePath = Path.Combine(inPath, file);
+                string reportTempContentFilePath = Path.Combine(outPath, file);
 
-            int accessionNumber = StructuredReport.StructuredReport.ReplaceFieldsWithValues(meassurementsList, reportContentFilePath, reportTempContentFilePath);
+                Console.WriteLine("Replacing values on: {0}", file);
+                int accessionNumberTemp =
+                    StructuredReport.StructuredReport.ReplaceFieldsWithValues
+                    (
+                        meassurementsList,
+                        reportContentFilePath,
+                        reportTempContentFilePath
+                    );
+
+                // if (accessionNumber != 0) accessionNumber = accessionNumberTemp;
+                if (accessionNumberTemp > 0 && accessionNumberTemp != null) accessionNumber = accessionNumberTemp;
+            }
 
             FileInfo fileOut = new FileInfo(
                 CrapFixer.CrapFixer.AmbulatorioReportPath(Config.fileOutPath, accessionNumber + ".doc"));
             if (fileOut.Exists) { fileOut.Delete(); }
 
+            Console.WriteLine("Creating report: {0}", fileOut.FullName);
             Utilities.Zippit.MakeZip(Config.tempFullPath, fileOut.FullName);
 
             Directory.Delete(Config.tempFullPath, true);
-            File.Delete(fileIn);
+            // File.Delete(file);
         }
     }
 
