@@ -6,6 +6,19 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+// ----------------------
+// TODO
+
+// Replace methods.
+//
+// 1) Get DCM File.
+// 2) Extract DATA.
+// 3) Copy template to temp folder named as DCM file.
+// 4) Replace Values from that temp folder's xmls.
+// 5) Compress files to .odt then change extencion to .doc
+//
+// ----------------------
+
 namespace Cardiolizer {
     struct Config
     {
@@ -30,13 +43,8 @@ namespace Cardiolizer {
             dataInPath = Path.Combine(dataPath, dataInDir),
             templatePath = Path.Combine(dataPath, templateDir),
 
-            // Deprecate
-            contentFilePath = Path.Combine(templatePath, contentFileName),
-            // ---------
-
-            tempPath = Path.Combine(dataPath, tempDir),
-            tempFullPath = "", // Path.Combine(Config.tempPath, new FileInfo(sourceFiles[i]).Name);
-            tempContentFilePath = ""; // Path.Combine(tempFullPath, tempContentFileName); // Path.Combine(tempPath, tempContentFileName);
+            tempPath = Path.Combine(dataPath, tempDir);
+            // tempContentFilePath = ""; // Path.Combine(tempFullPath, tempContentFileName); // Path.Combine(tempPath, tempContentFileName);
         
         public static bool
             watch = false,
@@ -52,7 +60,36 @@ namespace Cardiolizer {
         {
             Console.WriteLine("Usage: Cardiolizer -i <input_path> -o <output_path> <-w|--watch> <-e|--erase>");
         }
-        
+
+        public static void MakeReport(FileInfo fileIn)
+        {
+            ReportMaker report = new ReportMaker();
+            report.LoadDCMFile(fileIn.FullName, Config.SRStartString);
+
+            int accessionNumber = report.GetAccessionNumber();
+            string tempFullPath = Path.Combine(Config.tempPath, accessionNumber.ToString());
+
+            Utilities.Folders.CheckIfNotExistAndCreate(tempFullPath);
+            Utilities.Folders.Copy(Config.templatePath, tempFullPath, true);
+
+            foreach (string contentFile in Config.contentFiles)
+            {
+                report.ReplaceValuesOnFile(contentFile);
+            }
+
+            FileInfo fileOut =
+                new FileInfo(CrapFixer.CrapFixer.AmbulatorioReportPath(
+                    Config.fileOutPath,
+                    accessionNumber + ".doc"));
+
+            if (fileOut.Exists) { fileOut.Delete(); }
+
+            Console.WriteLine("Creating report: {0}", fileOut);
+            Utilities.Zippit.MakeZip(fileIn.FullName, fileOut.FullName);
+
+            Directory.Delete(fileIn.Directory.FullName, true);
+        }
+
         static void Main(string[] args)
         {
             // string[] args = {"-i", @"C:\Users\Juan Pelotas\AppData\Roaming\Cardiolizer\DCM_IN", "-o", @"\\172.100.1.201\Ambulatorio$", "-w", "-e" };
@@ -108,25 +145,20 @@ namespace Cardiolizer {
             // Console.WriteLine("Content File Path: \"{0}\"", Config.contentFilePath);
             Console.WriteLine("Temp: \"{0}\"", Config.tempDir);
 
-            foreach (string contentFileTemp in Config.contentFiles)
-            {
-                Console.WriteLine("Temp Content File: \"{0}\"", contentFileTemp);
-            }
+            string[] folderPaths = new string[] 
+            { 
+                Config.dataInPath, 
+                Config.templatePath, 
+                Config.tempPath 
+            };
             
-            Console.WriteLine("Out Path: \"{0}\"", Config.fileOutPath);
-
-            string[] folderPaths = new string[] { Config.dataInPath, Config.templatePath, Config.tempPath };
             Utilities.Folders.CheckIfNotExistAndCreate(folderPaths);
 
             // First check for files already in the input folder
-            string[] sourceFiles = Directory.GetFiles(Config.dataInPath, Config.fileFilter);
-            for (int i = 0; i < sourceFiles.Length; i++)
+            DirectoryInfo sourceDir =  new DirectoryInfo(Config.dataInPath);
+            foreach (FileInfo file in sourceDir.EnumerateFiles(Config.fileFilter))
             {
-                Config.tempFullPath = Path.Combine(Config.tempPath, new DirectoryInfo(sourceFiles[i]).Name);
-                Report report = new Report();
-                Utilities.Folders.CheckIfNotExistAndCreate(Config.tempFullPath);
-                Utilities.Folders.Copy(Config.templatePath, Config.tempFullPath, true);
-                report.MakeReportFromSRDCM(sourceFiles[i]);
+                MakeReport(file);   
             }
 
             // Then start watching if applies
@@ -142,62 +174,56 @@ namespace Cardiolizer {
         }
     }
 
-    class Report
+    class ReportMaker
     {
-        public void MakeReportFromSRDCM(string inPath, string outPath, string[] files)
+        const string dcmNotLoaded = "DCM File not loaded.";
+
+        bool dcmLoaded = false;
+        List<StructuredReport.Meassurements.item> meassurementList;
+
+        public void LoadDCMFile(string dcmFilePath, string sSRBegin)
         {
-            // **
-            // Here I made a mistake. Cause I've mixed too many tasks on just one function,
-            // what creates confusion.
-            // Next step would be reordering task by task on its properly function.
-            // 
-            // Read SR DCM and make a list.
-            // Replace values on XML with that list.
-            // ZIP the files on a DOC file.
-            // Delete them all.
-            // **
+            meassurementList = StructuredReport.StructuredReport.ExtractDCMData(dcmFilePath, sSRBegin);
+            dcmLoaded = true;
+        }
 
-            string content = StructuredReport.StructuredReport.Read(srdcm, Config.SRStartString);
-            List<StructuredReport.Meassurements.item> meassurementsList = new List<StructuredReport.Meassurements.item>();
-            meassurementsList = StructuredReport.StructuredReport.FillList(content);
+        public int GetAccessionNumber()
+        {
+            if (!dcmLoaded) throw new Exception(dcmNotLoaded);
 
-            foreach (StructuredReport.Meassurements.item item in meassurementsList)
+            StructuredReport.Meassurements.item item = meassurementList.Find(x => x.id == "AccessionNumber");
+            return int.Parse(item.value);
+        }
+
+        public void ReplaceValuesOnFile(string file)
+        {
+            ReplaceValuesOnFile(file, file);
+        }
+
+        public void ReplaceValuesOnFile(string fileIn, string fileOut)
+        {
+            if (!dcmLoaded) throw new Exception(dcmNotLoaded);
+
+            StringBuilder fileContent = new StringBuilder();
+
+            using (StreamReader sr = new StreamReader(fileIn))
             {
-                if (item.units != null)
+                fileContent.Append(sr.ReadToEnd());
+            }
+
+            foreach (StructuredReport.Meassurements.item item in meassurementList)
+            {
+                try
                 {
-                    StructuredReport.Meassurements.Units.TryGetValue(item.units, out item.units);
+                    fileContent.Replace(item.id, item.value + item.units);
                 }
+                catch { }
             }
 
-            int accessionNumber = 0;
-            foreach (string file in files)
+            using (StreamWriter sw = new StreamWriter(fileOut))
             {
-
-                string reportContentFilePath = Path.Combine(inPath, file);
-                string reportTempContentFilePath = Path.Combine(outPath, file);
-
-                Console.WriteLine("Replacing values on: {0}", file);
-                int accessionNumberTemp =
-                    StructuredReport.StructuredReport.ReplaceFieldsWithValues
-                    (
-                        meassurementsList,
-                        reportContentFilePath,
-                        reportTempContentFilePath
-                    );
-
-                // if (accessionNumber != 0) accessionNumber = accessionNumberTemp;
-                if (accessionNumberTemp > 0 && accessionNumberTemp != null) accessionNumber = accessionNumberTemp;
+                sw.Write(fileContent);
             }
-
-            FileInfo fileOut = new FileInfo(
-                CrapFixer.CrapFixer.AmbulatorioReportPath(Config.fileOutPath, accessionNumber + ".doc"));
-            if (fileOut.Exists) { fileOut.Delete(); }
-
-            Console.WriteLine("Creating report: {0}", fileOut.FullName);
-            Utilities.Zippit.MakeZip(Config.tempFullPath, fileOut.FullName);
-
-            Directory.Delete(Config.tempFullPath, true);
-            // File.Delete(file);
         }
     }
 
@@ -227,11 +253,8 @@ namespace Cardiolizer {
                 Thread.Sleep(500);
             }
             Console.WriteLine("Trying to create new report: {0}", e.FullPath);
-            Config.tempFullPath = Path.Combine(Config.tempPath, new DirectoryInfo(e.FullPath).Name);
-            Report report = new Report();
-            Utilities.Folders.CheckIfNotExistAndCreate(Config.tempFullPath);
-            Utilities.Folders.Copy(Config.templatePath, Config.tempFullPath, true);
-            report.MakeReportFromSRDCM(e.FullPath);
+            FileInfo file = new FileInfo(e.FullPath);
+            Cardiolizer.MakeReport(file);
         }
 
         private bool IsFileLocked(string file)

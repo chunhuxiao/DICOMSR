@@ -122,33 +122,12 @@ namespace StructuredReport
             return data;
         }
 
-        public static int ReplaceFieldsWithValues(List<Meassurements.item> dataList, string fileIn, string fileOut)
+        public static List<Meassurements.item> ExtractDCMData(string dcmFilePath, string sSRBegin)
         {
+            string content = Read(dcmFilePath, sSRBegin);
+            List<Meassurements.item> meassurementsList = FillList(content);
 
-            int accessionNumber = 0;
-            StringBuilder fileContent = new StringBuilder();
-
-            using (StreamReader sr = new StreamReader(fileIn))
-            {
-                fileContent.Append(sr.ReadToEnd());
-            }
-
-            foreach (Meassurements.item dato in dataList)
-            {
-                try
-                {
-                    fileContent.Replace(dato.id, dato.value + dato.units);
-                    if (dato.id == "AccessionNumber") { int.TryParse(dato.value, out accessionNumber); }
-                }
-                catch { }
-            }
-
-            using (StreamWriter sw = new StreamWriter(fileOut))
-            {
-                sw.Write(fileContent);
-            }
-
-            return accessionNumber;
+            return meassurementsList;
         }
 
         public static List<Meassurements.item> FillList(string content)
