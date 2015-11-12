@@ -1,0 +1,36 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Cardiolizer.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="folderDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cardiolizer</Value>
+    </Setting>
+    <Setting Name="dataInDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DCM_IN</Value>
+    </Setting>
+    <Setting Name="fileFilter" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SR*</Value>
+    </Setting>
+    <Setting Name="fileOutDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DOC_OUT</Value>
+    </Setting>
+    <Setting Name="fileOutName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{0}.doc</Value>
+    </Setting>
+    <Setting Name="templateDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ODT_TEMPLATE</Value>
+    </Setting>
+    <Setting Name="tempDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TEMP</Value>
+    </Setting>
+    <Setting Name="sSRBegin" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">&lt;Report&gt;</Value>
+    </Setting>
+    <Setting Name="watchDirectory" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="eraseTemporaries" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

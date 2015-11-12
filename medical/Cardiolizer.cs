@@ -6,35 +6,20 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-// ----------------------
-// TODO
-
-// Replace methods.
-//
-// 1) Get DCM File.
-// 2) Extract DATA.
-// 3) Copy template to temp folder named as DCM file.
-// 4) Replace Values from that temp folder's xmls.
-// 5) Compress files to .odt then change extencion to .doc
-//
-// ----------------------
-
 namespace Cardiolizer {
     struct Config
     {
         public const string
-            folderDir = "Cardiolizer",
-            dataInDir = "DCM_IN",
-            fileFilter = "SR*",
-            fileOutDir = "DOC_OUT",
-            fileOutName = "{0}.doc",
-            templateDir = "ODT_TEMPLATE",
-            contentFileName = "content.xml",
-            tempDir = "ODT_TEMP",
-            tempContentFileName = "content.xml",
-            SRStartString = "<Report>";
+            folderDir = Properties.Settings.Default.folderDir,
+            dataInDir = Properties.Settings.Default.dataInDir,
+            fileFilter = Properties.Settings.Default.fileFilter,
+            fileOutDir = Properties.Settings.Default.fileOutDir,
+            fileOutName = Properties.Settings.Default.fileOutName,
+            templateDir = Properties.Settings.Default.templateDir,
+            tempDir = Properties.Settings.Default.tempDir,
+            sSRBegin = Properties.Settings.Default.sSRBegin;
 
-        public const string[] contentFiles = { "content.xml", "styles.xml" };
+        public const string[] contentFiles = new string[] { "content.xml", "styles.xml" };
 
         public static string
             fileOutPath = "",
@@ -62,9 +47,9 @@ namespace Cardiolizer {
         }
 
         public static void MakeReport(FileInfo fileIn)
-        {
-            ReportMaker report = new ReportMaker();
-            report.LoadDCMFile(fileIn.FullName, Config.SRStartString);
+        {           
+            Report report = new Report();
+            report.LoadDCMFile(fileIn.FullName, Config.sSRBegin);
 
             int accessionNumber = report.GetAccessionNumber();
             string tempFullPath = Path.Combine(Config.tempPath, accessionNumber.ToString());
@@ -79,15 +64,14 @@ namespace Cardiolizer {
 
             FileInfo fileOut =
                 new FileInfo(CrapFixer.CrapFixer.AmbulatorioReportPath(
-                    Config.fileOutPath,
-                    accessionNumber + ".doc"));
+                    Config.fileOutPath, accessionNumber + ".doc"));
 
             if (fileOut.Exists) { fileOut.Delete(); }
 
             Console.WriteLine("Creating report: {0}", fileOut);
             Utilities.Zippit.MakeZip(fileIn.FullName, fileOut.FullName);
 
-            Directory.Delete(fileIn.Directory.FullName, true);
+            Directory.Delete(fileOut.DirectoryName, true);
         }
 
         static void Main(string[] args)
@@ -108,34 +92,34 @@ namespace Cardiolizer {
                     return;
                 }
 
-                if (args[i] == "-i" || args[i] == "--input")
-                {
-                    if (!string.IsNullOrWhiteSpace(args[i + 1]))
-                    {
-                        Config.dataInPath = args[i + 1];
-                        i++;
-                    }
-                }
+                //if (args[i] == "-i" || args[i] == "--input")
+                //{
+                //    if (!string.IsNullOrWhiteSpace(args[i + 1]))
+                //    {
+                //        Config.dataInPath = args[i + 1];
+                //        i++;
+                //    }
+                //}
 
 
-                if (args[i] == "-o" || args[i] == "--output")
-                {
-                    if (!string.IsNullOrWhiteSpace(args[i + 1]))
-                    {
-                        Config.fileOutPath = args[i + 1];
-                        i++;
-                    }
-                }
+                //if (args[i] == "-o" || args[i] == "--output")
+                //{
+                //    if (!string.IsNullOrWhiteSpace(args[i + 1]))
+                //    {
+                //        Config.fileOutPath = args[i + 1];
+                //        i++;
+                //    }
+                //}
 
-                if (args[i] == "-w" || args[i] == "--watch")
-                {
-                    Config.watch = true;            
-                }
+                //if (args[i] == "-w" || args[i] == "--watch")
+                //{
+                //    Config.watch = true;            
+                //}
 
-                if (args[i] == "-e" || args[i] == "--erase")
-                {
-                    Config.erase = true;
-                }
+                //if (args[i] == "-e" || args[i] == "--erase")
+                //{
+                //    Config.erase = true;
+                //}
             }
 
             Console.WriteLine("App Data Path: \"{0}\"", Config.appDataPath);
@@ -174,7 +158,7 @@ namespace Cardiolizer {
         }
     }
 
-    class ReportMaker
+    class Report
     {
         const string dcmNotLoaded = "DCM File not loaded.";
 
