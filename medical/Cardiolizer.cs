@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml;
 using System.IO;
-using System.Text;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace Cardiolizer {
     struct Config
     {
-        public const string
+        public static string
             folderDir = Properties.Settings.Default.folderDir,
             dataInDir = Properties.Settings.Default.dataInDir,
             fileFilter = Properties.Settings.Default.fileFilter,
@@ -17,11 +16,8 @@ namespace Cardiolizer {
             fileOutName = Properties.Settings.Default.fileOutName,
             templateDir = Properties.Settings.Default.templateDir,
             tempDir = Properties.Settings.Default.tempDir,
-            sSRBegin = Properties.Settings.Default.sSRBegin;
+            sSRBegin = Properties.Settings.Default.sSRBegin,
 
-        public const string[] contentFiles = new string[] { "content.xml", "styles.xml" };
-
-        public static string
             fileOutPath = "",
             appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             dataPath = Path.Combine(appDataPath, folderDir),
@@ -57,7 +53,7 @@ namespace Cardiolizer {
             Utilities.Folders.CheckIfNotExistAndCreate(tempFullPath);
             Utilities.Folders.Copy(Config.templatePath, tempFullPath, true);
 
-            foreach (string contentFile in Config.contentFiles)
+            foreach (string contentFile in Properties.Settings.Default.contentFiles)
             {
                 report.ReplaceValuesOnFile(contentFile);
             }
